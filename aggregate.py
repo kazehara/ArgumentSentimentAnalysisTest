@@ -71,13 +71,17 @@ def aggregate():
     return emotional_id_set, rational_id_set
 
 
-def main():
+def emotional_rational():
     emotional_id_set, rational_id_set = aggregate()
-    print(emotional_id_set)
-    print(rational_id_set)
 
     emotional_sentences = get_sentences(emotional_id_set)
     rational_sentences = get_sentences(rational_id_set)
+
+    return emotional_sentences, rational_sentences
+
+
+def main():
+    print(emotional_rational())
 
 
 if __name__ == '__main__':
