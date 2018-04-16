@@ -6,6 +6,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 import MeCab
 from nbsvm.nbsvm import NBSVM
 from sklearn.metrics import f1_score, roc_curve, auc
+from utils import plot_roc_curve
 
 import numpy as np
 
@@ -66,10 +67,14 @@ def main():
     print('F1 score : {}'.format(f1_score(y_test, y_pred, average='macro')))
 
     fpr, tpr, thresholds = roc_curve(y_test, y_pred, pos_label=1)
-    print('AUC of emotionals : {}'.format(auc(fpr, tpr)))
+    roc_auc = auc(fpr, tpr)
+    print('AUC of emotionals : {}'.format(roc_auc))
+    plot_roc_curve(fpr, tpr, roc_auc, 'nbsvm_emotional_roc.png')
 
     fpr, tpr, thresholds = roc_curve(y_test, y_pred, pos_label=0)
-    print('AUC of rationals : {}'.format(auc(fpr, tpr)))
+    roc_auc = auc(fpr, tpr)
+    print('AUC of rationals : {}'.format(roc_auc))
+    plot_roc_curve(fpr, tpr, roc_auc, 'nbsvm_rational_roc.png')
 
 
 if __name__ == '__main__':
