@@ -6,41 +6,17 @@ from sklearn.feature_extraction.text import CountVectorizer
 import MeCab
 from nbsvm.nbsvm import NBSVM
 from sklearn.metrics import f1_score, roc_curve, auc
-from utils import plot_roc_curve
+from utils import plot_roc_curve, Preprocessor
 
 import numpy as np
-
-
-class NBSVMClassifier:
-
-    def __init__(self):
-        self.mecab = MeCab.Tagger('-Owakati -d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
-        self.X_train = None
-        self.y_train = None
-
-    def _preprocess(self, text: str) -> str:
-        text = text.strip()
-        return text
-
-    def _parse(self, text: str) -> str:
-        text = self.mecab.parse(text)
-        text = text.strip()
-        return text
-
-    def parse_sentences(self, sentences: List[str]) -> List[str]:
-        return list(map(self._parse, sentences))
-
-    def vectorize(self, corpus: List[str]):
-        vectorizer = CountVectorizer()
-        self.X_train = vectorizer.fit_transform(corpus)
 
 
 def main():
     emotionals, rationals = emotional_rational()
 
-    classifier = NBSVMClassifier()
-    emotionals = classifier.parse_sentences(emotionals)
-    rationals = classifier.parse_sentences(rationals)
+    preprocessor = Preprocessor()
+    emotionals = preprocessor.parse_sentences(emotionals)
+    rationals = preprocessor.parse_sentences(rationals)
 
     train_pos = emotionals[:len(emotionals)//2]
     train_neg = rationals[:len(rationals)//2]
