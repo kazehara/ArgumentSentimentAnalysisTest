@@ -19,6 +19,9 @@ def main():
     emotionals = preprocessor.parse_sentences(emotionals)
     rationals = preprocessor.parse_sentences(rationals)
 
+    emotionals = emotionals[:len(emotionals)]
+    rationals = rationals[:len(emotionals)]
+
     sentences = emotionals + rationals
     Y = np.array([[0, 1]] * len(emotionals) + [[1, 0]] * len(rationals))
 
