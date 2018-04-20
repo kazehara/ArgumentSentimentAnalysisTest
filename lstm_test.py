@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from keras.layers import Dense, Embedding, LSTM, Dropout, Conv1D, MaxPooling1D
+from keras.layers import Dense, Embedding, LSTM, Dropout, Conv1D, MaxPooling1D, Bidirectional
 from keras.models import Sequential
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
@@ -39,7 +39,7 @@ def main():
     model.add(Dropout(0.25))
     model.add(Conv1D(64, 5, padding='valid', activation='relu', strides=1))
     model.add(MaxPooling1D(pool_size=4))
-    model.add(LSTM(lstm_out, dropout=0.2, recurrent_dropout=0.2))
+    model.add(Bidirectional(LSTM(lstm_out, dropout=0.2, recurrent_dropout=0.2)))
     model.add(Dense(2, activation='softmax'))
 
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
