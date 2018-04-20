@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
-from aggregate import emotional_rational
-from utils import Preprocessor
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
-from keras.models import Sequential
-from keras.layers import Dense, Embedding, LSTM, SpatialDropout1D
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import f1_score, roc_curve, auc, mean_absolute_error
-from keras.utils.np_utils import to_categorical
-
 import numpy as np
+from keras.layers import Dense, Embedding, LSTM, Dropout, Conv1D, MaxPooling1D
+from keras.models import Sequential
+from keras.preprocessing.sequence import pad_sequences
+from keras.preprocessing.text import Tokenizer
+from sklearn.metrics import mean_absolute_error, f1_score, log_loss, roc_curve, classification_report, confusion_matrix
+from sklearn.model_selection import train_test_split
+
+from aggregate import emotional_rational
+from utils import Preprocessor, plot_confusion_matrix
 
 
 def main():
@@ -18,6 +17,9 @@ def main():
     preprocessor = Preprocessor()
     emotionals = preprocessor.parse_sentences(emotionals)
     rationals = preprocessor.parse_sentences(rationals)
+
+    emotionals = emotionals[:630]
+    rationals = rationals[:630]
 
     sentences = emotionals + rationals
     Y = np.array([[0, 1]] * len(emotionals) + [[1, 0]] * len(rationals))
@@ -34,7 +36,9 @@ def main():
 
     model = Sequential()
     model.add(Embedding(max_features, embed_dim, input_length=X.shape[1]))
-    model.add(SpatialDropout1D(0.4))
+    model.add(Dropout(0.25))
+    model.add(Conv1D(64, 5, padding='valid', activation='relu', strides=1))
+    model.add(MaxPooling1D(pool_size=4))
     model.add(LSTM(lstm_out, dropout=0.2, recurrent_dropout=0.2))
     model.add(Dense(2, activation='softmax'))
 
@@ -57,7 +61,10 @@ def main():
     Y_pred = model.predict(X_test, batch_size=1, verbose=2)
     print(Y_pred)
 
-    print(mean_absolute_error(Y_test, Y_pred))
+    print(classification_report(Y_test[:, 1], np.round(Y_pred[:, 1]), target_names=['rationals', 'emotionals']))
+
+    cnf_matrix = confusion_matrix(Y_test[:, 1], np.round(Y_pred[:, 1]))
+    plot_confusion_matrix(cnf_matrix, ['rationals', 'emotionals'], 'cnf.png')
 
 
 if __name__ == '__main__':
