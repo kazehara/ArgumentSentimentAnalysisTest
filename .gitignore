@@ -109,3 +109,6 @@ venv.bak/
 # Nagoya Dataset
 dataset/
 *.png
+
+# Other
+.DS_Store
