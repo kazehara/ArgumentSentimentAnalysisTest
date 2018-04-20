@@ -4,11 +4,11 @@ from keras.layers import Dense, Embedding, LSTM, Dropout, Conv1D, MaxPooling1D, 
 from keras.models import Sequential
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
-from sklearn.metrics import mean_absolute_error, f1_score, log_loss, roc_curve, classification_report, confusion_matrix
+from sklearn.metrics import roc_curve, classification_report, confusion_matrix, auc
 from sklearn.model_selection import train_test_split
 
 from aggregate import emotional_rational
-from utils import Preprocessor, plot_confusion_matrix
+from utils import Preprocessor, plot_confusion_matrix, plot_roc_curve
 
 
 def main():
@@ -62,6 +62,10 @@ def main():
     print(Y_pred)
 
     print(classification_report(Y_test[:, 1], np.round(Y_pred[:, 1]), target_names=['rationals', 'emotionals']))
+
+    fpr, tpr, _ = roc_curve(Y_test[:, 1], np.round(Y_pred[:, 1]))
+    roc_auc = auc(fpr, tpr)
+    plot_roc_curve(fpr, tpr, roc_auc, 'roc.png')
 
     cnf_matrix = confusion_matrix(Y_test[:, 1], np.round(Y_pred[:, 1]))
     plot_confusion_matrix(cnf_matrix, ['rationals', 'emotionals'], 'cnf.png')
