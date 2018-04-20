@@ -1,21 +1,37 @@
 # -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import MeCab
-from typing import List
+from typing import List, Optional
 import numpy as np
 import itertools
 
 
 class Preprocessor:
 
-    def __init__(self):
-        self.mecab = MeCab.Tagger('-Owakati -d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
+    def __init__(self, ignore_parts: List[str] = []):
+        self.mecab = MeCab.Tagger('-Ochasen -d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
+        self.mecab.parse('')
         self.X_train = None
         self.y_train = None
+        self.ignore_parts = ignore_parts
 
     def _parse(self, text: str) -> str:
-        text = self.mecab.parse(text)
-        text = text.strip()
+        # text = self.mecab.parse(text)
+        # text = text.strip()
+
+        origin = []
+        parts = []
+
+        node = self.mecab.parseToNode(text)
+        while node:
+            feature = node.feature.split(',')[0]
+            if feature not in self.ignore_parts:
+                origin.append(node.surface)
+                parts.append(feature)
+            node = node.next
+
+        text = ' '.join(origin)
+
         return text
 
     def parse_sentences(self, sentences: List[str]) -> List[str]:
