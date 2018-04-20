@@ -20,14 +20,12 @@ class Preprocessor:
         # text = text.strip()
 
         origin = []
-        parts = []
 
         node = self.mecab.parseToNode(text)
         while node:
             feature = node.feature.split(',')[0]
             if feature not in self.ignore_parts:
                 origin.append(node.surface)
-                parts.append(feature)
             node = node.next
 
         text = ' '.join(origin)
