@@ -63,7 +63,7 @@ def main():
 
     print(classification_report(Y_test[:, 1], np.round(Y_pred[:, 1]), target_names=['rationals', 'emotionals']))
 
-    fpr, tpr, _ = roc_curve(Y_test[:, 1], np.round(Y_pred[:, 1]))
+    fpr, tpr, _ = roc_curve(Y_test[:, 1], Y_pred[:, 1])
     roc_auc = auc(fpr, tpr)
     plot_roc_curve(fpr, tpr, roc_auc, 'roc.png')
 
