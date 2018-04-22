@@ -37,8 +37,6 @@ def main():
     model = Sequential()
     model.add(Embedding(max_features, embed_dim, input_length=X.shape[1]))
     model.add(Dropout(0.25))
-    model.add(Conv1D(64, 5, padding='valid', activation='relu', strides=1))
-    model.add(MaxPooling1D(pool_size=4))
     model.add(Bidirectional(LSTM(lstm_out, dropout=0.2, recurrent_dropout=0.2)))
     model.add(Dense(2, activation='softmax'))
 
