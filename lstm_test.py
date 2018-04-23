@@ -33,7 +33,7 @@ def main():
 
     embed_dim = 128
     lstm_out = 196
-    epochs = 15
+    epochs = 7
 
     model = Sequential()
     model.add(Embedding(max_features, embed_dim, input_length=X.shape[1]))
