@@ -33,6 +33,7 @@ def main():
 
     embed_dim = 128
     lstm_out = 196
+    epochs = 15
 
     model = Sequential()
     model.add(Embedding(max_features, embed_dim, input_length=X.shape[1]))
@@ -51,7 +52,7 @@ def main():
     print(X_test.shape, Y_test.shape)
 
     batch_size = 32
-    model.fit(X_train, Y_train, epochs=7, batch_size=batch_size, verbose=2)
+    model.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, verbose=2)
 
     score, acc = model.evaluate(X_test, Y_test, verbose=2, batch_size=batch_size)
 
