@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from keras.layers import Dense, Embedding, LSTM, Dropout, Conv1D, MaxPooling1D, Bidirectional
-from keras.models import Sequential
+from keras import Input, Model
+from keras.layers import Dense, Embedding, LSTM, Bidirectional, Permute, Reshape, Lambda, K, RepeatVector, merge
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 from sklearn.metrics import roc_curve, classification_report, confusion_matrix, auc
@@ -9,6 +9,49 @@ from sklearn.model_selection import train_test_split
 
 from aggregate import emotional_rational
 from utils import Preprocessor, plot_confusion_matrix, plot_roc_curve
+
+MAX_LEN = 30
+TIME_STEPS = 20
+
+SINGLE_ATTENTION_VECTOR = False
+
+
+def attention_3d_block(inputs):
+    # inputs.shape = (batch_size, time_steps, input_dim)
+    input_dim = int(inputs.shape[2])
+    a = Permute((2, 1))(inputs)
+    a = Reshape((input_dim, TIME_STEPS))(a) # this line is not useful. It's just to know which dimension is what.
+    a = Dense(TIME_STEPS, activation='softmax')(a)
+    if SINGLE_ATTENTION_VECTOR:
+        a = Lambda(lambda x: K.mean(x, axis=1), name='dim_reduction')(a)
+        a = RepeatVector(input_dim)(a)
+    a_probs = Permute((2, 1), name='attention_vec')(a)
+    output_attention_mul = merge([inputs, a_probs], name='attention_mul', mode='mul')
+    return output_attention_mul
+
+
+def build_model():
+    max_features = 200
+    embed_dim = 128
+    lstm_dim = 196
+
+    main_input = Input(shape=(MAX_LEN,))
+
+    x = Embedding(max_features, embed_dim, input_length=MAX_LEN, dropout=0.3)(main_input)
+    # x = BatchNormalization()(x)
+    x = Bidirectional(LSTM(lstm_dim, dropout=0.2, recurrent_dropout=0.2))(x)
+    # attention_mul = attention_3d_block(x)
+    # x = Flatten()(attention_mul)
+
+    main_output = Dense(2, activation='softmax')(x)
+
+    model = Model(inputs=[main_input], outputs=[main_output])
+
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+    model.summary()
+
+    return model
 
 
 def main():
@@ -29,21 +72,23 @@ def main():
     tokenizer.fit_on_texts(sentences)
 
     X = tokenizer.texts_to_sequences(sentences)
-    X = pad_sequences(X)
+    X = pad_sequences(X, maxlen=MAX_LEN)
 
     embed_dim = 128
     lstm_out = 196
     epochs = 7
 
-    model = Sequential()
-    model.add(Embedding(max_features, embed_dim, input_length=X.shape[1]))
-    model.add(Dropout(0.25))
-    model.add(Bidirectional(LSTM(lstm_out, dropout=0.2, recurrent_dropout=0.2)))
-    model.add(Dense(2, activation='softmax'))
+    # model = Sequential()
+    # model.add(Embedding(max_features, embed_dim, input_length=X.shape[1]))
+    # model.add(Dropout(0.25))
+    # model.add(Bidirectional(LSTM(lstm_out, dropout=0.2, recurrent_dropout=0.2)))
+    # model.add(Dense(2, activation='softmax'))
+    #
+    # model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    #
+    # model.summary()
 
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-    model.summary()
+    model = build_model()
 
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.33, random_state=42)
     print(X_train.shape, Y_train.shape)
