@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from keras import Input, Model
-from keras.layers import Dense, Embedding, LSTM, Bidirectional, Permute, Reshape, Lambda, K, RepeatVector, merge
+from keras.layers import Dense, Embedding, LSTM, Bidirectional, Permute, Reshape, Lambda, K, RepeatVector, merge, \
+    Flatten, BatchNormalization
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 from sklearn.metrics import roc_curve, classification_report, confusion_matrix, auc
@@ -11,7 +12,6 @@ from aggregate import emotional_rational
 from utils import Preprocessor, plot_confusion_matrix, plot_roc_curve
 
 MAX_LEN = 30
-TIME_STEPS = 20
 
 SINGLE_ATTENTION_VECTOR = False
 
@@ -20,8 +20,8 @@ def attention_3d_block(inputs):
     # inputs.shape = (batch_size, time_steps, input_dim)
     input_dim = int(inputs.shape[2])
     a = Permute((2, 1))(inputs)
-    a = Reshape((input_dim, TIME_STEPS))(a) # this line is not useful. It's just to know which dimension is what.
-    a = Dense(TIME_STEPS, activation='softmax')(a)
+    a = Reshape((input_dim, MAX_LEN))(a) # this line is not useful. It's just to know which dimension is what.
+    a = Dense(MAX_LEN, activation='softmax')(a)
     if SINGLE_ATTENTION_VECTOR:
         a = Lambda(lambda x: K.mean(x, axis=1), name='dim_reduction')(a)
         a = RepeatVector(input_dim)(a)
@@ -37,11 +37,11 @@ def build_model():
 
     main_input = Input(shape=(MAX_LEN,))
 
-    x = Embedding(max_features, embed_dim, input_length=MAX_LEN, dropout=0.3)(main_input)
-    # x = BatchNormalization()(x)
-    x = Bidirectional(LSTM(lstm_dim, dropout=0.2, recurrent_dropout=0.2))(x)
-    # attention_mul = attention_3d_block(x)
-    # x = Flatten()(attention_mul)
+    x = Embedding(max_features, embed_dim, input_length=MAX_LEN)(main_input)
+    x = BatchNormalization()(x)
+    x = Bidirectional(LSTM(lstm_dim, dropout=0.2, recurrent_dropout=0.2, return_sequences=True))(x)
+    attention_mul = attention_3d_block(x)
+    x = Flatten()(attention_mul)
 
     main_output = Dense(2, activation='softmax')(x)
 
@@ -74,19 +74,7 @@ def main():
     X = tokenizer.texts_to_sequences(sentences)
     X = pad_sequences(X, maxlen=MAX_LEN)
 
-    embed_dim = 128
-    lstm_out = 196
     epochs = 7
-
-    # model = Sequential()
-    # model.add(Embedding(max_features, embed_dim, input_length=X.shape[1]))
-    # model.add(Dropout(0.25))
-    # model.add(Bidirectional(LSTM(lstm_out, dropout=0.2, recurrent_dropout=0.2)))
-    # model.add(Dense(2, activation='softmax'))
-    #
-    # model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-    #
-    # model.summary()
 
     model = build_model()
 
