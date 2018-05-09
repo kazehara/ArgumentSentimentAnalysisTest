@@ -122,6 +122,12 @@ def main():
     plot_confusion_matrix(cnf_matrix, ['rationals', 'emotionals'], 'cnf.png')
 
     attention_vector = np.mean(get_activations(model, X_test, True, 'attention_vec')[0], axis=2).squeeze()
+    attention_vector = np.mean(attention_vector, axis=0)
+
+    import matplotlib.pyplot as plt
+    import pandas as pd
+    pd.DataFrame(attention_vector, columns=['attention (%)']).plot(kind='bar', title='Attention')
+    plt.show()
     print(attention_vector)
 
 
