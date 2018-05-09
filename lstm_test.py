@@ -16,6 +16,25 @@ MAX_LEN = 30
 SINGLE_ATTENTION_VECTOR = False
 
 
+def get_activations(model, inputs, print_shape_only=False, layer_name=None):
+    print('----- activations -----')
+    activations = []
+    input = model.input
+    if layer_name is None:
+        outputs = [layer.output for layer in model.layers]
+    else:
+        outputs = [layer.output for layer in model.layers if layer.name == layer_name]
+    funcs = [K.function([input] + [K.learning_phase()], [output]) for output in outputs]
+    layer_outputs = [func([inputs, 1.])[0] for func in funcs]
+    for layer_activations in layer_outputs:
+        activations.append(layer_activations)
+        if print_shape_only:
+            print(layer_activations.shape)
+        else:
+            print(layer_activations)
+    return activations
+
+
 def attention_3d_block(inputs):
     # inputs.shape = (batch_size, time_steps, input_dim)
     input_dim = int(inputs.shape[2])
@@ -91,7 +110,6 @@ def main():
     print('acc: {}'.format(acc))
 
     Y_pred = model.predict(X_test, batch_size=1, verbose=2)
-    print(Y_pred)
 
     print(classification_report(Y_test[:, 1], np.round(Y_pred[:, 1]), target_names=['rationals', 'emotionals']))
 
@@ -101,6 +119,9 @@ def main():
 
     cnf_matrix = confusion_matrix(Y_test[:, 1], np.round(Y_pred[:, 1]))
     plot_confusion_matrix(cnf_matrix, ['rationals', 'emotionals'], 'cnf.png')
+
+    attention_vector = np.mean(get_activations(model, X_test, True, 'attention_vec')[0], axis=2).squeeze()
+    print(attention_vector)
 
 
 if __name__ == '__main__':
