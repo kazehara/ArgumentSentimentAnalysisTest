@@ -127,7 +127,7 @@ def main():
     import matplotlib.pyplot as plt
     import pandas as pd
     pd.DataFrame(attention_vector, columns=['attention (%)']).plot(kind='bar', title='Attention')
-    plt.show()
+    plt.savefig('attention_vec.png')
     print(attention_vector)
 
 
