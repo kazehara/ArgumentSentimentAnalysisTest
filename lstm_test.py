@@ -37,6 +37,7 @@ def get_activations(model, inputs, print_shape_only=False, layer_name=None):
 
 def attention_3d_block(inputs):
     # inputs.shape = (batch_size, time_steps, input_dim)
+    # (batch_size, max_len, embed_dim)
     input_dim = int(inputs.shape[2])
     a = Permute((2, 1))(inputs)
     a = Reshape((input_dim, MAX_LEN))(a) # this line is not useful. It's just to know which dimension is what.
