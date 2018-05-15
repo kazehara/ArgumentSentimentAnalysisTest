@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
+import matplotlib
 import numpy as np
 from keras import Input, Model
 from keras.datasets import imdb
 from keras.layers import Dense, Embedding, LSTM, Bidirectional, Permute, Reshape, Lambda, K, RepeatVector, merge, \
     Flatten, BatchNormalization
 from keras.preprocessing.sequence import pad_sequences
-from keras.preprocessing.text import Tokenizer
-from sklearn.metrics import roc_curve, classification_report, confusion_matrix, auc
-from sklearn.model_selection import train_test_split
 
-from aggregate import emotional_rational
-from utils import Preprocessor, plot_confusion_matrix, plot_roc_curve
+matplotlib.use('Agg')
 
 MAX_LEN = 80
 
