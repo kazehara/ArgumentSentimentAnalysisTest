@@ -64,7 +64,28 @@ def build_model():
     attention_mul = attention_3d_block(x)
     x = Flatten()(attention_mul)
 
-    main_output = Dense(1, activation='softmax')(x)
+    main_output = Dense(1, activation='sigmoid')(x)
+
+    model = Model(inputs=[main_input], outputs=[main_output])
+
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+    model.summary()
+
+    return model
+
+
+def build_model_no_attention():
+    max_features = 200
+    embed_dim = 128
+    lstm_dim = 196
+
+    main_input = Input(shape=(MAX_LEN,))
+
+    x = Embedding(max_features, embed_dim, input_length=MAX_LEN)(main_input)
+    x = Bidirectional(LSTM(lstm_dim, dropout=0.2, recurrent_dropout=0.2))(x)
+
+    main_output = Dense(1, activation='sigmoid')(x)
 
     model = Model(inputs=[main_input], outputs=[main_output])
 
@@ -85,7 +106,8 @@ def main():
 
     epochs = 7
 
-    model = build_model()
+    # model = build_model()
+    model = build_model_no_attention()
 
     print(X_train.shape, Y_train.shape)
     print(X_test.shape, Y_test.shape)
