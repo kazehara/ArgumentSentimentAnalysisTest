@@ -106,8 +106,8 @@ def main():
 
     epochs = 7
 
-    # model = build_model()
-    model = build_model_no_attention()
+    model = build_model()
+    # model = build_model_no_attention()
 
     print(X_train.shape, Y_train.shape)
     print(X_test.shape, Y_test.shape)
