@@ -125,7 +125,7 @@ def main():
     pd.DataFrame(attention_vector, columns=['attention (%)']).plot(kind='bar', title='Attention')
     plt.savefig('attention_vec.png')
 
-    attention_vector_indices = np.argsort(attention_vector)[::-1]
+    attention_vector_indices = np.argsort(attention_vector)[::-1][:10]
 
     word_index = imdb.get_word_index()
     word_index_inv = {v: k for k, v in word_index.items()}
