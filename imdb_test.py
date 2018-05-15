@@ -124,12 +124,14 @@ def main():
     import pandas as pd
     pd.DataFrame(attention_vector, columns=['attention (%)']).plot(kind='bar', title='Attention')
     plt.savefig('attention_vec.png')
-    print(attention_vector)
 
-    print(X_train[0])
+    attention_vector_indices = np.argsort(attention_vector)[::-1]
 
-    y_preds = model.predict(X_test)
-    print(y_preds, y_preds.shape)
+    word_index = imdb.get_word_index()
+    word_index_inv = {v: k for k, v in word_index.items()}
+
+    for i, attention_index in enumerate(attention_vector_indices):
+        print('No.{} : {}'.format(i, word_index_inv[attention_index]))
 
 
 if __name__ == '__main__':
