@@ -126,6 +126,9 @@ def main():
     plt.savefig('attention_vec.png')
     print(attention_vector)
 
+    y_pred = model.predict(X_test[0])
+    print(y_pred, y_pred.shape)
+
 
 if __name__ == '__main__':
     main()
