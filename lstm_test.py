@@ -13,7 +13,7 @@ from sklearn.model_selection import train_test_split
 from aggregate import emotional_rational
 from utils import Preprocessor, plot_confusion_matrix, plot_roc_curve
 
-MAX_LEN = 30
+MAX_LEN = 100
 
 SINGLE_ATTENTION_VECTOR = False
 
@@ -96,7 +96,7 @@ def main():
     X = tokenizer.texts_to_sequences(sentences)
     X = pad_sequences(X, maxlen=MAX_LEN)
 
-    epochs = 7
+    epochs = 15
 
     model = build_model()
 
