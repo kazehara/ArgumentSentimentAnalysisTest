@@ -9,7 +9,7 @@ import itertools
 class Preprocessor:
 
     def __init__(self, ignore_parts: List[str] = []):
-        self.mecab = MeCab.Tagger('-Ochasen -d /usr/lib/mecab/dic/mecab-ipadic-neologd')
+        self.mecab = MeCab.Tagger('-Ochasen -d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
         self.mecab.parse('')
         self.X_train = None
         self.y_train = None
