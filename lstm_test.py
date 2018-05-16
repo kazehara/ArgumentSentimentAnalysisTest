@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 import matplotlib
+from keras.engine import Layer
+
 matplotlib.use('Agg')
+
+from emotional_dict import EmotionalDict
+from features import AdditionalFeatures
+
 import numpy as np
 from keras import Input, Model
 from keras.layers import Dense, Embedding, LSTM, Bidirectional, Permute, Reshape, Lambda, K, RepeatVector, merge, \
-    Flatten, BatchNormalization
+    Flatten, BatchNormalization, Dropout, concatenate
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 from sklearn.metrics import roc_curve, classification_report, confusion_matrix, auc
@@ -13,7 +19,7 @@ from sklearn.model_selection import train_test_split
 from aggregate import emotional_rational
 from utils import Preprocessor, plot_confusion_matrix, plot_roc_curve
 
-MAX_LEN = 100
+MAX_LEN = 150
 
 SINGLE_ATTENTION_VECTOR = False
 
@@ -52,22 +58,32 @@ def attention_3d_block(inputs):
     return output_attention_mul
 
 
-def build_model():
+def build_model(additional_feautes_shape):
     max_features = 200
     embed_dim = 128
     lstm_dim = 196
 
-    main_input = Input(shape=(MAX_LEN,))
+    main_input = Input(shape=(MAX_LEN,), name='main_input')
 
-    x = Embedding(max_features, embed_dim, input_length=MAX_LEN)(main_input)
+    x = Embedding(max_features, embed_dim, input_length=MAX_LEN, trainable=True)(main_input)
     x = BatchNormalization()(x)
     x = Bidirectional(LSTM(lstm_dim, dropout=0.2, recurrent_dropout=0.2, return_sequences=True))(x)
+
+    # Additional Features
+    additional_input = Input(shape=additional_feautes_shape, name='add_input')
+    t_additional_input = Dense(392, activation='tanh')(additional_input)
+    t_additional_input = Dropout(0.5)(t_additional_input)
+
+    x = concatenate([x, t_additional_input])
+
+    # Attention
     attention_mul = attention_3d_block(x)
     x = Flatten()(attention_mul)
 
     main_output = Dense(2, activation='softmax')(x)
 
-    model = Model(inputs=[main_input], outputs=[main_output])
+    model = Model(inputs=[main_input, t_additional_input], outputs=[main_output])
+    # model = Model(inputs=[main_input], outputs=[main_output])
 
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
@@ -98,14 +114,22 @@ def main():
 
     epochs = 15
 
-    model = build_model()
+    # --- Add Features ---
+    dict_loader = EmotionalDict('dataset/nouns', 'dataset/verbs')
+    emotional_dict = dict_loader.load()
+
+    features_loader = AdditionalFeatures(emotionals+rationals, emotional_dict)
+    add_features = features_loader.emotional_features()
+    ######################
+
+    model = build_model(add_features.shape)
 
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.33, random_state=42)
     print(X_train.shape, Y_train.shape)
     print(X_test.shape, Y_test.shape)
 
     batch_size = 32
-    model.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, verbose=2)
+    model.fit({'main_input': X_train, 'add_input': add_features}, Y_train, epochs=epochs, batch_size=batch_size, verbose=2)
 
     score, acc = model.evaluate(X_test, Y_test, verbose=2, batch_size=batch_size)
 
