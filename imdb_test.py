@@ -130,8 +130,9 @@ def main():
     word_index = imdb.get_word_index()
     word_index_inv = {v: k for k, v in word_index.items()}
 
-    for i, attention_index in enumerate(attention_vector_indices):
-        print('No.{} : {}'.format(i, word_index_inv[attention_index]))
+    with open('attention_word.txt', 'w') as f:
+        for i, attention_index in enumerate(attention_vector_indices):
+            print('No.{} : {}'.format(i, word_index_inv[attention_index]), file=f)
 
 
 if __name__ == '__main__':
