@@ -58,7 +58,7 @@ def attention_3d_block(inputs):
     return output_attention_mul
 
 
-def build_model(additional_feautes_shape):
+def build_model(add_features_shape):
     max_features = 200
     embed_dim = 128
     lstm_dim = 196
@@ -70,8 +70,10 @@ def build_model(additional_feautes_shape):
     x = Bidirectional(LSTM(lstm_dim, dropout=0.2, recurrent_dropout=0.2, return_sequences=True))(x)
 
     # Additional Features
-    additional_input = Input(shape=additional_feautes_shape, name='add_input')
-    t_additional_input = Dense(392, activation='tanh')(additional_input)
+    additional_input = Input(shape=add_features_shape, name='add_input')
+    t_additional_input = Flatten()(additional_input)
+    t_additional_input = RepeatVector(150)(t_additional_input)
+    t_additional_input = Dense(392, activation='tanh')(t_additional_input)
     t_additional_input = Dropout(0.5)(t_additional_input)
 
     x = concatenate([x, t_additional_input])
@@ -82,7 +84,7 @@ def build_model(additional_feautes_shape):
 
     main_output = Dense(2, activation='softmax')(x)
 
-    model = Model(inputs=[main_input, t_additional_input], outputs=[main_output])
+    model = Model(inputs=[main_input, additional_input], outputs=[main_output])
     # model = Model(inputs=[main_input], outputs=[main_output])
 
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
