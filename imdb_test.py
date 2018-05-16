@@ -132,7 +132,10 @@ def main():
 
     with open('attention_word.txt', 'w') as f:
         for i, attention_index in enumerate(attention_vector_indices):
-            print('No.{} : {}'.format(i, word_index_inv[attention_index]), file=f)
+            try:
+                print('No.{} : {}'.format(i, word_index_inv[attention_index]), file=f)
+            except KeyError:
+                continue
 
 
 if __name__ == '__main__':
