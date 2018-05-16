@@ -130,7 +130,18 @@ def main():
     import pandas as pd
     pd.DataFrame(attention_vector, columns=['attention (%)']).plot(kind='bar', title='Attention')
     plt.savefig('attention_vec.png')
-    print(attention_vector)
+
+    attention_vector_indices = np.argsort(attention_vector)[::-1]
+
+    word_index = tokenizer.word_index
+    word_index_inv = {v: k for k, v in word_index.items()}
+
+    with open('attention_word.txt', 'w') as f:
+        for i, attention_index in enumerate(attention_vector_indices, start=1):
+            try:
+                print('No.{} : {}'.format(i, word_index_inv[attention_index]), file=f)
+            except KeyError:
+                continue
 
 
 if __name__ == '__main__':
