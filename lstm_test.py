@@ -70,10 +70,9 @@ def build_model(add_features_shape):
     x = Bidirectional(LSTM(lstm_dim, dropout=0.2, recurrent_dropout=0.2, return_sequences=True))(x)
 
     # Additional Features
-    additional_input = Input(shape=add_features_shape, name='add_input')
-    t_additional_input = Flatten()(additional_input)
-    t_additional_input = RepeatVector(150)(t_additional_input)
-    t_additional_input = Dense(392, activation='tanh')(t_additional_input)
+    additional_input = Input(shape=(MAX_LEN,), name='add_input')
+    t_additional_input = RepeatVector(MAX_LEN)(additional_input)
+    t_additional_input = Dense(256, activation='tanh')(t_additional_input)
     t_additional_input = Dropout(0.5)(t_additional_input)
 
     x = concatenate([x, t_additional_input])
@@ -124,21 +123,24 @@ def main():
     add_features = features_loader.emotional_features()
     ######################
 
-    model = build_model(add_features.shape)
+    x_aux_train = add_features[:848]
+    x_aux_test = add_features[848:]
+
+    model = build_model(x_aux_train.shape)
 
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.33, random_state=42)
     print(X_train.shape, Y_train.shape)
     print(X_test.shape, Y_test.shape)
 
     batch_size = 32
-    model.fit({'main_input': X_train, 'add_input': add_features}, Y_train, epochs=epochs, batch_size=batch_size, verbose=2)
+    model.fit({'main_input': X_train, 'add_input': x_aux_train}, Y_train, epochs=epochs, batch_size=batch_size, verbose=2)
 
-    score, acc = model.evaluate(X_test, Y_test, verbose=2, batch_size=batch_size)
+    score, acc = model.evaluate({'main_input': X_test, 'add_input': x_aux_test}, Y_test, verbose=2, batch_size=batch_size)
 
     print('score: {}'.format(score))
     print('acc: {}'.format(acc))
 
-    Y_pred = model.predict(X_test, batch_size=1, verbose=2)
+    Y_pred = model.predict({'main_input': X_test, 'add_input': x_aux_test}, batch_size=1, verbose=2)
 
     print(classification_report(Y_test[:, 1], np.round(Y_pred[:, 1]), target_names=['rationals', 'emotionals']))
 
